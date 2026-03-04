@@ -1,4 +1,4 @@
-package com.mistri.dungeon;
+package com.mistri.labyrinthGame;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

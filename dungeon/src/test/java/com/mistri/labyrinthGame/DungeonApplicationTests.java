@@ -1,4 +1,4 @@
-package com.mistri.dungeon;
+package com.mistri.labyrinthGame;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
