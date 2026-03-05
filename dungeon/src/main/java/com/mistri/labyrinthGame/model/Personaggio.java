@@ -1,6 +1,10 @@
 package com.mistri.labyrinthGame.model;
 
-import java.util.Scanner;
+import com.mistri.labyrinthGame.model.abilita.Abilita;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Consumer;
 
 public abstract class Personaggio {
 
@@ -8,66 +12,76 @@ public abstract class Personaggio {
     protected String emoji;
     protected Stats stats;
 
-    protected int livello = 1;
+    protected int livello    = 1;
     protected int esperienza = 0;
 
-    public Personaggio(String nome, String emoji, Stats stats){
-        this.nome = nome;
+    protected List<Abilita> abilita = new ArrayList<>();
+
+    /**
+     * Callback opzionale: viene chiamato quando il player guadagna un level-up
+     * con il numero di punti bonus da distribuire.
+     * Il Game lo imposta per gestire l'input via Lanterna (niente Scanner).
+     */
+    private Consumer<Integer> onLevelUp = null;
+
+    public Personaggio(String nome, String emoji, Stats stats) {
+        this.nome  = nome;
         this.emoji = emoji;
         this.stats = stats;
     }
 
-    public void guadagnaExp(int exp){
-        esperienza += exp;
+    // ── EXP / Level ──────────────────────────────────────────────────────────
 
-        while(esperienza >= expPerLivello()){
+    public void guadagnaExp(int exp) {
+        esperienza += exp;
+        while (esperienza >= expPerLivello()) {
             esperienza -= expPerLivello();
             levelUp();
         }
     }
 
-    private int expPerLivello(){
+    private int expPerLivello() {
         return livello * 100;
     }
 
-    protected void levelUp(){
+    private void levelUp() {
         livello++;
-        System.out.println("LEVEL UP! Livello "+livello);
+        System.out.println("LEVEL UP! Livello " + livello);
 
-        crescitaClasse(); // automatico
+        crescitaClasse();           // bonus automatico della classe
 
-        assegnaPuntiManuali(2); // bonus manuale
-    }
-
-    private void assegnaPuntiManuali(int punti){
-
-        Scanner sc = new Scanner(System.in);
-
-        while(punti>0){
-            System.out.println("Scegli stat da aumentare:");
-            System.out.println("1 Forza 2 Vita 3 Mana 4 Int 5 Stamina");
-            int scelta = sc.nextInt();
-
-            switch(scelta){
-                case 1: stats.aumentaForza(1); break;
-                case 2: stats.aumentaVita(1); break;
-                case 3: stats.aumentaMana(1); break;
-                case 4: stats.aumentaIntelligenza(1); break;
-                case 5: stats.aumentaStamina(1); break;
-            }
-            punti--;
+        if (onLevelUp != null) {
+            onLevelUp.accept(2);    // 2 punti bonus manuali → gestiti da Game via Lanterna
         }
     }
 
-    protected abstract void crescitaClasse();
+    /**
+     * Il Game chiama questo per ricevere i punti bonus da distribuire
+     * e li gestisce con input Lanterna, senza Scanner.
+     */
+    public void setOnLevelUp(Consumer<Integer> callback) {
+        this.onLevelUp = callback;
+    }
 
-    public int getLivello(){
-        return livello;
+    // ── Abilità ──────────────────────────────────────────────────────────────
+
+    public void aggiungiAbilita(Abilita a) {
+        abilita.add(a);
     }
-    public Stats getStats(){
-        return stats;
+
+    public List<Abilita> getAbilita() {
+        return abilita;
     }
-    public String getEmoji(){
-        return emoji;
-    }
+
+    // ── Getters ──────────────────────────────────────────────────────────────
+
+    public String getNome()    { return nome; }
+    public String getEmoji()   { return emoji; }
+    public int    getLivello() { return livello; }
+    public Stats  getStats()   { return stats; }
+
+    // ── Overridable ──────────────────────────────────────────────────────────
+
+    /** Ogni classe definisce la propria crescita automatica a ogni level-up */
+    protected abstract void crescitaClasse();
 }
